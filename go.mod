@@ -1,4 +1,4 @@
-module gitee.com/lky_kyk/interfaceUtils
+module github.com/lky492465798/interfaceUtils
 
 go 1.18
 

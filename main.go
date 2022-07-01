@@ -5,8 +5,8 @@ import (
 	"sort"
 	"time"
 
-	stat "gitee.com/lky_kyk/interfaceUtils/support"
 	"github.com/gin-gonic/gin"
+	stat "github.com/lky492465798/interfaceUtils/support"
 )
 
 func main() {
