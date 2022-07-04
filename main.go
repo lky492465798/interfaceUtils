@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	// stat "github.com/lky492465798/interfaceUtils/support"
 )
 
 func main() {
+
 	r := gin.Default()
 	rand.Seed(time.Now().Unix())
 	r.Use(UrlFilter)

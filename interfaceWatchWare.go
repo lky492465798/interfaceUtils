@@ -1,7 +1,6 @@
 package interfaceUtils
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 	"sync"
@@ -10,10 +9,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// 1. r.Use(UrlFilter) 注册中间件
+// 2. 注册GetStatHandler的路径, 根据需要给FlushUrlWebStats绑定一个路径
+// 3. r.InitUrlFilter(r *gin.Engine, suffixs []string) 初始化监控路由,过滤路由列表
+// *ps: 第3步(在注册完接口后调用)防止不能正确加载需要监控的路由
+
+// 是否使用默认配置(注册路由后失效)
+var useDefault bool = true
+
+var ignorePathMap map[string]string
+
+var urlWebStats map[string]*urlWebStat = make(map[string]*urlWebStat)
+
+var methodTries map[string]*node
+
 var lock sync.RWMutex
 
 func UrlFilter(c *gin.Context) {
-	fmt.Println("被执行!!!!")
 	path := c.Request.URL.Path
 	method := c.Request.Method
 	if !useDefault {
@@ -42,18 +54,26 @@ func addInterInfoASYNC(t *urlWebStat, time *time.Duration) {
 	t.Add(TimeToFloatOfms(*time))
 }
 
-func InitUrlFilter(r *gin.Engine, suffixs []string) {
-	r.GET("/urlwebstat/list", func(c *gin.Context) {
-		infos := make(ResBody4Inters, len(GetUrlWebStats()))
-		currIdx := 0
-		for _, v := range GetUrlWebStats() {
-			infos[currIdx] = v.ShowInfo()
-			currIdx++
-		}
-		sort.Sort(infos)
-		c.JSON(200, gin.H{" 接口信息: ": infos})
+// 获取Stats结果集
+func GetStatHandler(c *gin.Context) {
+	infos := make(ResBody4Inters, len(GetUrlWebStats()))
+	currIdx := 0
+	for _, v := range GetUrlWebStats() {
+		infos[currIdx] = v.ShowInfo()
+		currIdx++
+	}
+	sort.Sort(infos)
+	c.JSON(200, gin.H{" 接口信息: ": infos})
+}
 
-	})
+// 清空Stats结果集
+func FlushUrlWebStats(c *gin.Context) {
+	lock.Lock()
+	defer lock.Unlock()
+	urlWebStats = make(map[string]*urlWebStat)
+}
+
+func InitUrlFilter(r *gin.Engine, suffixs []string) {
 	registryPath(r)
 	registryIgnorePath(suffixs)
 }
@@ -101,14 +121,6 @@ func registryIgnorePath(suffixs []string) {
 func GetUrlWebStats() map[string]*urlWebStat {
 	return urlWebStats
 }
-
-var useDefault bool = true
-
-var ignorePathMap map[string]string
-
-var urlWebStats map[string]*urlWebStat = make(map[string]*urlWebStat)
-
-var methodTries map[string]*node
 
 func parsePattern(pattern string) []string {
 	vs := strings.Split(pattern, "/")

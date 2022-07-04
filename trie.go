@@ -9,6 +9,7 @@ type node struct {
 	isWild   bool
 }
 
+// /a/b  -->  /*/c    /a/b
 func (n *node) matchChildren(part string) []*node {
 	nodes := make([]*node, 0)
 	for _, child := range n.children {

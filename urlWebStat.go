@@ -8,7 +8,9 @@ import (
 	"time"
 )
 
-const DEFAULTCAPICITY int = 1000
+const DEFAULTCAPACITY int = 1000
+
+var Capacity = DEFAULTCAPACITY
 
 type urlWebStat struct {
 	Path      string
@@ -17,6 +19,10 @@ type urlWebStat struct {
 	Head      int
 	IsCircle  bool
 	rw        sync.RWMutex
+}
+
+func SetCapicity(size int) {
+	Capacity = size
 }
 
 func (urlWebStat *urlWebStat) ShowInfo() ResBody4Inter {
@@ -40,7 +46,7 @@ func (urlWebStat *urlWebStat) Add(time float64) {
 	if !urlWebStat.IsCircle {
 		urlWebStat.TimeArray = append(urlWebStat.TimeArray, time)
 		urlWebStat.Head++
-		if urlWebStat.Head == DEFAULTCAPICITY {
+		if urlWebStat.Head == Capacity {
 			urlWebStat.IsCircle = true
 			urlWebStat.Head = 0
 		}
@@ -48,7 +54,7 @@ func (urlWebStat *urlWebStat) Add(time float64) {
 	}
 	urlWebStat.TimeArray[urlWebStat.Head] = time
 	urlWebStat.Head++
-	if urlWebStat.Head == DEFAULTCAPICITY {
+	if urlWebStat.Head == Capacity {
 		urlWebStat.Head = 0
 	}
 }
