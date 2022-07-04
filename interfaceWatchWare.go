@@ -1,7 +1,8 @@
-package stat
+package interfaceUtils
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -42,7 +43,17 @@ func addInterInfoASYNC(t *urlWebStat, time *time.Duration) {
 }
 
 func InitUrlFilter(r *gin.Engine, suffixs []string) {
+	r.GET("/urlwebstat/list", func(c *gin.Context) {
+		infos := make(ResBody4Inters, len(GetUrlWebStats()))
+		currIdx := 0
+		for _, v := range GetUrlWebStats() {
+			infos[currIdx] = v.ShowInfo()
+			currIdx++
+		}
+		sort.Sort(infos)
+		c.JSON(200, gin.H{" 接口信息: ": infos})
 
+	})
 	registryPath(r)
 	registryIgnorePath(suffixs)
 }

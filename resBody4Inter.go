@@ -1,4 +1,4 @@
-package stat
+package interfaceUtils
 
 type ResBody4Inter struct {
 	Path    string `json:" 请求路径: "`
