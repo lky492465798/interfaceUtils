@@ -17,6 +17,7 @@ import (
 // 是否使用默认配置(注册路由后失效)
 var useDefault bool = true
 
+// 忽略地址(目前支持.xxx格式)
 var ignorePathMap map[string]struct{}
 
 var urlWebStats map[string]*urlWebStat = make(map[string]*urlWebStat)

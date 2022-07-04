@@ -1,17 +1,18 @@
-package interfaceUtils
+package main
 
 import (
 	"math/rand"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	sup "github.com/lky492465798/interfaceUtils/support"
 )
 
 func main() {
 
 	r := gin.Default()
 	rand.Seed(time.Now().Unix())
-	r.Use(UrlFilter)
+	r.Use(sup.UrlFilter)
 	r.GET("/index", func(c *gin.Context) {
 		time.Sleep(time.Millisecond * time.Duration(rand.Intn(50)))
 	})
@@ -26,7 +27,7 @@ func main() {
 		time.Sleep(time.Millisecond * time.Duration(rand.Intn(30)))
 	})
 
-	InitUrlFilter(r, []string{".txt", ".html"})
+	sup.InitUrlFilter(r, []string{".txt", ".html"})
 	r.Run(":9000")
 
 }
