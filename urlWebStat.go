@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const DEFAULTCAPACITY int = 1000
+const DEFAULTCAPACITY int = 2000
 
 var Capacity = DEFAULTCAPACITY
 

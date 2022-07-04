@@ -17,7 +17,7 @@ import (
 // 是否使用默认配置(注册路由后失效)
 var useDefault bool = true
 
-var ignorePathMap map[string]string
+var ignorePathMap map[string]struct{}
 
 var urlWebStats map[string]*urlWebStat = make(map[string]*urlWebStat)
 
@@ -74,6 +74,8 @@ func FlushUrlWebStats(c *gin.Context) {
 }
 
 func InitUrlFilter(r *gin.Engine, suffixs []string) {
+	r.GET("/urlstat/info", GetStatHandler)
+	r.GET("/urlstat/del", FlushUrlWebStats)
 	registryPath(r)
 	registryIgnorePath(suffixs)
 }
@@ -112,9 +114,9 @@ func registryIgnorePath(suffixs []string) {
 		return
 	}
 
-	ignorePathMap = make(map[string]string)
+	ignorePathMap = make(map[string]struct{})
 	for _, v := range suffixs {
-		ignorePathMap[v] = ""
+		ignorePathMap[v] = struct{}{}
 	}
 }
 
