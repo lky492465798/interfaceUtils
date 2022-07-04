@@ -1,7 +1,6 @@
 package interfaceUtils
 
 import (
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -14,13 +13,16 @@ import (
 // 3. r.InitUrlFilter(r *gin.Engine, suffixs []string) 初始化监控路由,过滤路由列表
 // *ps: 第3步(在注册完接口后调用)防止不能正确加载需要监控的路由
 
+// TODO: 1. 拿到nano后时间处理过程,
+//  	 2. 封装接口信息
+
 // 是否使用默认配置(注册路由后失效)
 var useDefault bool = true
 
 // 忽略地址(目前支持.xxx格式)
 var ignorePathMap map[string]struct{}
 
-var urlWebStats map[string]*urlWebStat = make(map[string]*urlWebStat)
+var WebAppStats map[string]*WebAppStat = make(map[string]*WebAppStat)
 
 var methodTries map[string]*node
 
@@ -37,46 +39,47 @@ func UrlFilter(c *gin.Context) {
 		}
 		path = node.pattern
 	}
-	start := time.Now()
+	start := time.Now().UnixNano()
 	c.Next()
-	diff := time.Since(start)
-	_, ok := urlWebStats[path]
+	diff := time.Now().UnixNano() - start
+	_, ok := WebAppStats[path+"-"+method]
 	if !ok {
 		lock.Lock()
-		if _, ok := urlWebStats[path]; !ok {
-			urlWebStats[path] = &urlWebStat{Path: path, Method: method, Head: 0, IsCircle: false}
+		if _, ok := WebAppStats[path+"-"+method]; !ok {
+			WebAppStats[path+"-"+method] = &WebAppStat{Path: path, Method: method}
 		}
 		lock.Unlock()
 	}
-	go addInterInfoASYNC(urlWebStats[path], &diff)
+	go addInterInfoASYNC(WebAppStats[path], &diff)
 }
 
-func addInterInfoASYNC(t *urlWebStat, time *time.Duration) {
-	t.Add(TimeToFloatOfms(*time))
+func addInterInfoASYNC(t *WebAppStat, nanos *int64) {
+	// 时间处理逻辑
+
 }
 
 // 获取Stats结果集
-func GetStatHandler(c *gin.Context) {
-	infos := make(ResBody4Inters, len(GetUrlWebStats()))
-	currIdx := 0
-	for _, v := range GetUrlWebStats() {
-		infos[currIdx] = v.ShowInfo()
-		currIdx++
-	}
-	sort.Sort(infos)
-	c.JSON(200, gin.H{" 接口信息: ": infos})
-}
+// func GetStatHandler(c *gin.Context) {
+// 	infos := make(ResBody4Inters, len(GetUrlWebStats()))
+// 	currIdx := 0
+// 	for _, v := range GetUrlWebStats() {
+// 		infos[currIdx] = v.ShowInfo()
+// 		currIdx++
+// 	}
+// 	sort.Sort(infos)
+// 	c.JSON(200, gin.H{" 接口信息: ": infos})
+// }
 
 // 清空Stats结果集
-func FlushUrlWebStats(c *gin.Context) {
-	lock.Lock()
-	defer lock.Unlock()
-	urlWebStats = make(map[string]*urlWebStat)
-}
+// func FlushUrlWebStats(c *gin.Context) {
+// 	lock.Lock()
+// 	defer lock.Unlock()
+// 	urlWebStats = make(map[string]*urlWebStat)
+// }
 
 func InitUrlFilter(r *gin.Engine, suffixs []string) {
-	r.GET("/urlstat/info", GetStatHandler)
-	r.GET("/urlstat/del", FlushUrlWebStats)
+	// r.GET("/urlstat/info", GetStatHandler)
+	// r.GET("/urlstat/del", FlushUrlWebStats)
 	registryPath(r)
 	registryIgnorePath(suffixs)
 }
@@ -121,9 +124,9 @@ func registryIgnorePath(suffixs []string) {
 	}
 }
 
-func GetUrlWebStats() map[string]*urlWebStat {
-	return urlWebStats
-}
+// func GetUrlWebStats() map[string]*urlWebStat {
+// 	return urlWebStats
+// }
 
 func parsePattern(pattern string) []string {
 	vs := strings.Split(pattern, "/")
