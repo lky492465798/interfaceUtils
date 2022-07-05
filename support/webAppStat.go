@@ -5,23 +5,26 @@ import (
 	"time"
 )
 
+// 时间区间(ms)
+var flag []int64 = []int64{1, 10, 50, 100, 300, 500, 1000, 5000}
+
 type WebAppStat struct {
-	Path                                      string
-	Method                                    string
-	runningCount                              int32 // before
-	concurrentMax                             int32 // before
-	requestTimeNanoMax                        int64
-	requestTimeNanoMaxOccurTime               int64
-	requestTimeNano                           int64
-	requestIntervalHistogram_0_1              int64
-	requestIntervalHistogram_1_10             int64
-	requestIntervalHistogram_10_100           int64
-	requestIntervalHistogram_100_1000         int64
-	requestIntervalHistogram_1000_10000       int64
-	requestIntervalHistogram_10000_100000     int64
-	requestIntervalHistogram_100000_1000000   int64
-	requestIntervalHistogram_1000000_10000000 int64
-	requestIntervalHistogram_10000000_more    int64
+	Path                        string
+	Method                      string
+	runningCount                int32 // before
+	concurrentMax               int32 // before
+	requestTimeNanoMax          int64
+	requestTimeNanoMaxOccurTime int64
+	requestTimeNano             int64
+	requestIntervalHistogram1   int64
+	requestIntervalHistogram2   int64
+	requestIntervalHistogram3   int64
+	requestIntervalHistogram4   int64
+	requestIntervalHistogram5   int64
+	requestIntervalHistogram6   int64
+	requestIntervalHistogram7   int64
+	requestIntervalHistogram8   int64
+	requestIntervalHistogram9   int64
 }
 
 func (w *WebAppStat) SetRequestTimeNano(nanos int64) {
@@ -68,24 +71,24 @@ func (w *WebAppStat) DecreRunningCount() {
 
 func (w *WebAppStat) histogramRecord(nanoSpan int64) {
 	millis := nanoSpan / 1000 / 1000
-	if millis < 1 {
-		atomic.AddInt64(&(w.requestIntervalHistogram_0_1), 1)
-	} else if millis < 10 {
-		atomic.AddInt64(&(w.requestIntervalHistogram_1_10), 1)
-	} else if millis < 50 {
-		atomic.AddInt64(&(w.requestIntervalHistogram_10_100), 1)
-	} else if millis < 100 {
-		atomic.AddInt64(&(w.requestIntervalHistogram_100_1000), 1)
-	} else if millis < 300 {
-		atomic.AddInt64(&(w.requestIntervalHistogram_1000_10000), 1)
-	} else if millis < 500 {
-		atomic.AddInt64(&(w.requestIntervalHistogram_10000_100000), 1)
-	} else if millis < 1000 {
-		atomic.AddInt64(&(w.requestIntervalHistogram_100000_1000000), 1)
-	} else if millis < 5000 {
-		atomic.AddInt64(&(w.requestIntervalHistogram_1000000_10000000), 1)
+	if millis < flag[0] {
+		atomic.AddInt64(&(w.requestIntervalHistogram1), 1)
+	} else if millis < flag[1] {
+		atomic.AddInt64(&(w.requestIntervalHistogram2), 1)
+	} else if millis < flag[2] {
+		atomic.AddInt64(&(w.requestIntervalHistogram3), 1)
+	} else if millis < flag[3] {
+		atomic.AddInt64(&(w.requestIntervalHistogram4), 1)
+	} else if millis < flag[4] {
+		atomic.AddInt64(&(w.requestIntervalHistogram5), 1)
+	} else if millis < flag[5] {
+		atomic.AddInt64(&(w.requestIntervalHistogram6), 1)
+	} else if millis < flag[6] {
+		atomic.AddInt64(&(w.requestIntervalHistogram7), 1)
+	} else if millis < flag[7] {
+		atomic.AddInt64(&(w.requestIntervalHistogram8), 1)
 	} else {
-		atomic.AddInt64(&(w.requestIntervalHistogram_10000000_more), 1)
+		atomic.AddInt64(&(w.requestIntervalHistogram9), 1)
 	}
 }
 
@@ -96,16 +99,15 @@ func (w *WebAppStat) GetValue() WebAppStatValue {
 	res.RequestTimeNanoMax = get64(&w.requestTimeNanoMax) / 1000 / 1000
 	res.RequestTimeNanoMaxOccurTime = time.Unix(0, get64(&w.requestTimeNanoMaxOccurTime)).Format("2006-01-02 15:04:05")
 	res.RunningCount = get32(&w.runningCount)
-	res.RequestIntervalHistogram_0_1 = get64(&w.requestIntervalHistogram_0_1)
-	res.RequestIntervalHistogram_1_10 = get64(&w.requestIntervalHistogram_1_10)
-	res.RequestIntervalHistogram_1_10 = get64(&w.requestIntervalHistogram_1_10)
-	res.RequestIntervalHistogram_10_100 = get64(&w.requestIntervalHistogram_10_100)
-	res.RequestIntervalHistogram_100_1000 = get64(&w.requestIntervalHistogram_100_1000)
-	res.RequestIntervalHistogram_1000_10000 = get64(&w.requestIntervalHistogram_1000_10000)
-	res.RequestIntervalHistogram_10000_100000 = get64(&w.requestIntervalHistogram_10000_100000)
-	res.RequestIntervalHistogram_100000_1000000 = get64(&w.requestIntervalHistogram_100000_1000000)
-	res.RequestIntervalHistogram_1000000_10000000 = get64(&w.requestIntervalHistogram_1000000_10000000)
-	res.RequestIntervalHistogram_10000000_more = get64(&w.requestIntervalHistogram_10000000_more)
+	res.RequestIntervalHistogram1 = get64(&w.requestIntervalHistogram1)
+	res.RequestIntervalHistogram2 = get64(&w.requestIntervalHistogram2)
+	res.RequestIntervalHistogram3 = get64(&w.requestIntervalHistogram3)
+	res.RequestIntervalHistogram4 = get64(&w.requestIntervalHistogram4)
+	res.RequestIntervalHistogram5 = get64(&w.requestIntervalHistogram5)
+	res.RequestIntervalHistogram6 = get64(&w.requestIntervalHistogram6)
+	res.RequestIntervalHistogram7 = get64(&w.requestIntervalHistogram7)
+	res.RequestIntervalHistogram8 = get64(&w.requestIntervalHistogram8)
+	res.RequestIntervalHistogram9 = get64(&w.requestIntervalHistogram9)
 	res.calTP()
 	return res
 }

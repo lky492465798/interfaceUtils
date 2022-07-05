@@ -5,38 +5,38 @@ import "fmt"
 type Webstats []WebAppStatValue
 
 type WebAppStatValue struct {
-	Path                                      string `json:" 请求路径: "`
-	Method                                    string `json:" 请求方式: "`
-	RunningCount                              int32  `json:" 当前运行数量: "`
-	ConcurrentMax                             int32  `json:" 最大并发数量: "`
-	RequestTimeNanoMax                        int64  `json:" 最大耗时时间(ms): "`
-	RequestTimeNanoMaxOccurTime               string `json:" 最大耗时发生时间: "`
-	RequestTimeNano                           int64  `json:" 请求总时间(ms): "`
-	AvgRequestTimeNano                        int64  `json:" 请求平均时间(ms): "`
-	RequestIntervalHistogram_0_1              int64  `json:" 第一区间: "`
-	RequestIntervalHistogram_1_10             int64  `json:" 第二区间: "`
-	RequestIntervalHistogram_10_100           int64  `json:" 第三区间: "`
-	RequestIntervalHistogram_100_1000         int64  `json:" 第四区间: "`
-	RequestIntervalHistogram_1000_10000       int64  `json:" 第五区间: "`
-	RequestIntervalHistogram_10000_100000     int64  `json:" 第六区间: "`
-	RequestIntervalHistogram_100000_1000000   int64  `json:" 第七区间: "`
-	RequestIntervalHistogram_1000000_10000000 int64  `json:" 第八区间: "`
-	RequestIntervalHistogram_10000000_more    int64  `json:" 第九区间: "`
-	TP99                                      string `json:" TP99: "`
-	TP50                                      string `json:" TP50: "`
+	Path                        string `json:" 请求路径: "`
+	Method                      string `json:" 请求方式: "`
+	RunningCount                int32  `json:" 当前运行数量: "`
+	ConcurrentMax               int32  `json:" 最大并发数量: "`
+	RequestTimeNanoMax          int64  `json:" 最大耗时时间(ms): "`
+	RequestTimeNanoMaxOccurTime string `json:" 最大耗时发生时间: "`
+	RequestTimeNano             int64  `json:" 请求总时间(ms): "`
+	AvgRequestTimeNano          int64  `json:" 请求平均时间(ms): "`
+	RequestIntervalHistogram1   int64  `json:" 第一区间: "`
+	RequestIntervalHistogram2   int64  `json:" 第二区间: "`
+	RequestIntervalHistogram3   int64  `json:" 第三区间: "`
+	RequestIntervalHistogram4   int64  `json:" 第四区间: "`
+	RequestIntervalHistogram5   int64  `json:" 第五区间: "`
+	RequestIntervalHistogram6   int64  `json:" 第六区间: "`
+	RequestIntervalHistogram7   int64  `json:" 第七区间: "`
+	RequestIntervalHistogram8   int64  `json:" 第八区间: "`
+	RequestIntervalHistogram9   int64  `json:" 第九区间: "`
+	TP99                        string `json:" TP99: "`
+	TP50                        string `json:" TP50: "`
 }
 
 func (w *WebAppStatValue) calTP() {
 	arr := []int64{
-		w.RequestIntervalHistogram_0_1,
-		w.RequestIntervalHistogram_1_10,
-		w.RequestIntervalHistogram_10_100,
-		w.RequestIntervalHistogram_100_1000,
-		w.RequestIntervalHistogram_1000_10000,
-		w.RequestIntervalHistogram_10000_100000,
-		w.RequestIntervalHistogram_100000_1000000,
-		w.RequestIntervalHistogram_1000000_10000000,
-		w.RequestIntervalHistogram_10000000_more,
+		w.RequestIntervalHistogram1,
+		w.RequestIntervalHistogram2,
+		w.RequestIntervalHistogram3,
+		w.RequestIntervalHistogram4,
+		w.RequestIntervalHistogram5,
+		w.RequestIntervalHistogram6,
+		w.RequestIntervalHistogram7,
+		w.RequestIntervalHistogram8,
+		w.RequestIntervalHistogram9,
 	}
 	sum := count(arr)
 	if sum != 0 {
@@ -47,12 +47,12 @@ func (w *WebAppStatValue) calTP() {
 	var t int64 = 0
 	for i, v := range arr {
 		t += v
+		if w.TP50 == "" && t >= int64(itp50) {
+			w.TP50 = fmt.Sprintf("位于第 %d 区间!", i+1)
+		}
 		if t >= int64(itp99) {
 			w.TP99 = fmt.Sprintf("位于第 %d 区间!", i+1)
 			break
-		}
-		if w.TP50 == "" && t >= int64(itp50) {
-			w.TP50 = fmt.Sprintf("位于第 %d 区间!", i+1)
 		}
 	}
 }
