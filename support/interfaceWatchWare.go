@@ -1,6 +1,7 @@
 package interfaceUtils
 
 import (
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -39,9 +40,6 @@ func UrlFilter(c *gin.Context) {
 		}
 		path = node.pattern
 	}
-	start := time.Now().UnixNano()
-	c.Next()
-	diff := time.Now().UnixNano() - start
 	_, ok := WebAppStats[path+"-"+method]
 	if !ok {
 		lock.Lock()
@@ -50,25 +48,37 @@ func UrlFilter(c *gin.Context) {
 		}
 		lock.Unlock()
 	}
-	go addInterInfoASYNC(WebAppStats[path], &diff)
+	concurrentCal(WebAppStats[path+"-"+method])
+	start := time.Now().UnixNano()
+	c.Next()
+	diff := time.Now().UnixNano() - start
+	go addInterInfoASYNC(WebAppStats[path+"-"+method], diff)
 }
 
-func addInterInfoASYNC(t *WebAppStat, nanos *int64) {
+func addInterInfoASYNC(w *WebAppStat, nanos int64) {
 	// 时间处理逻辑
+	w.DecreRunningCount()
+	w.SetRequestTimeNano(nanos)
+	w.SetRequestTimeNanoMax(nanos)
+	w.histogramRecord(nanos)
+}
 
+func concurrentCal(w *WebAppStat) {
+	running := w.IncreRunningCount()
+	w.SetConcurrentMax(running)
 }
 
 // 获取Stats结果集
-// func GetStatHandler(c *gin.Context) {
-// 	infos := make(ResBody4Inters, len(GetUrlWebStats()))
-// 	currIdx := 0
-// 	for _, v := range GetUrlWebStats() {
-// 		infos[currIdx] = v.ShowInfo()
-// 		currIdx++
-// 	}
-// 	sort.Sort(infos)
-// 	c.JSON(200, gin.H{" 接口信息: ": infos})
-// }
+func GetStatHandler(c *gin.Context) {
+	stats := make(Webstats, len(GetUrlWebStats()))
+	currIdx := 0
+	for _, v := range GetUrlWebStats() {
+		stats[currIdx] = v.GetValue()
+		currIdx++
+	}
+	sort.Sort(stats)
+	c.JSON(200, gin.H{" 接口信息: ": stats})
+}
 
 // 清空Stats结果集
 // func FlushUrlWebStats(c *gin.Context) {
@@ -78,7 +88,7 @@ func addInterInfoASYNC(t *WebAppStat, nanos *int64) {
 // }
 
 func InitUrlFilter(r *gin.Engine, suffixs []string) {
-	// r.GET("/urlstat/info", GetStatHandler)
+	r.GET("/urlstat/info", GetStatHandler)
 	// r.GET("/urlstat/del", FlushUrlWebStats)
 	registryPath(r)
 	registryIgnorePath(suffixs)
@@ -124,9 +134,9 @@ func registryIgnorePath(suffixs []string) {
 	}
 }
 
-// func GetUrlWebStats() map[string]*urlWebStat {
-// 	return urlWebStats
-// }
+func GetUrlWebStats() map[string]*WebAppStat {
+	return WebAppStats
+}
 
 func parsePattern(pattern string) []string {
 	vs := strings.Split(pattern, "/")

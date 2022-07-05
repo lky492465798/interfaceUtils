@@ -11,12 +11,3 @@ type ResBody4Inter struct {
 
 type ResBody4Inters []ResBody4Inter
 
-func (s ResBody4Inters) Len() int {
-	return len(s)
-}
-func (s ResBody4Inters) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
-func (s ResBody4Inters) Less(i, j int) bool {
-	return len(s[i].Path) < len(s[j].Path)
-}
